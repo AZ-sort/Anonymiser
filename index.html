@@ -55,14 +55,11 @@
 
       // --- Parameters to tweak ---
       const bandHeight = 45;  // height of anonymisation band
-      const spacing = 160;    // distance between username rows
-      const startOffset = 20; // first username row offset
+      const startOffset = 20; // y-position of the first username row
 
-      // White out each username row across the full width
-      for (let y = startOffset; y < img.height; y += spacing) {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, y, img.width, bandHeight);
-      }
+      // White out only the FIRST username row
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, startOffset, img.width, bandHeight);
 
       // Show result
       const resultDiv = document.getElementById("results");
