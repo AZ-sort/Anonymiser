@@ -153,6 +153,30 @@
         }
       }
     });
+    
+    // Handle drag-and-drop
+    const pasteArea = document.getElementById("paste-area");
+
+    pasteArea.addEventListener("dragover", function (event) {
+      event.preventDefault();
+      pasteArea.classList.add("dragover");
+    });
+
+    pasteArea.addEventListener("dragleave", function () {
+      pasteArea.classList.remove("dragover");
+    });
+
+    pasteArea.addEventListener("drop", function (event) {
+      event.preventDefault();
+      pasteArea.classList.remove("dragover");
+
+      const files = event.dataTransfer.files;
+      for (let file of files) {
+        if (file.type.indexOf("image") !== -1) {
+          processImageFile(file);
+        }
+      }
+    });
   </script>
 </body>
 </html>
