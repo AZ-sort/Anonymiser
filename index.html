@@ -7,158 +7,156 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-  body {
-    font-family: 'Inter', sans-serif;
-    background: #dae0e6;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #dae0e6;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
 
-  header {
-    width: 100%;
-    background-color: #273869;
-    color: white;
-    padding: 14px 20px;
-    font-size: 20px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-  }
+    header {
+      width: 100%;
+      background-color: #273869;
+      color: white;
+      padding: 14px 20px;
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
 
-  header::before {
-    content: "⬤";
-    font-size: 14px;
-    margin-right: 10px;
-  }
+    header::before {
+      content: "⬤";
+      font-size: 14px;
+      margin-right: 10px;
+    }
 
-  /* Layout: left fixed panel, right scrollable content */
-  .main {
-    display: flex;
-    margin-top: 60px; /* push below header */
-  }
+    /* Main layout wrapper */
+    .main {
+      display: flex;
+      margin-top: 60px; /* push below header */
+    }
 
-  /* Left fixed column */
-  .left {
-    width: 33%;
-    max-width: 400px;
-    height: calc(100vh - 60px); /* full height under header */
-    background: white;
-    padding: 20px;
-    border-right: 1px solid #d1d5db;
-    position: fixed;
-    top: 60px; /* just under header */
-    left: 0;
-    overflow-y: auto;
-    box-shadow: 2px 0 6px rgba(0,0,0,0.08);
-  }
+    /* Left column (fixed) */
+    .left {
+      width: 33%;
+      max-width: 400px;
+      height: calc(100vh - 60px);
+      background: white;
+      padding: 20px;
+      border-right: 1px solid #d1d5db;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      overflow-y: auto;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.08);
+    }
 
-  .left h2 {
-    margin-top: 0;
-    font-weight: 600;
-    color: #111827;
-  }
+    .left h2 {
+      margin-top: 0;
+      font-weight: 600;
+      color: #111827;
+    }
 
-  .left p {
-    color: #4b5563;
-    margin-bottom: 20px;
-  }
+    .left p {
+      color: #4b5563;
+      margin-bottom: 20px;
+    }
 
-  input[type="file"] {
-    margin: 10px 0;
-    padding: 10px;
-    border: 2px solid #3b82f6;
-    border-radius: 8px;
-    cursor: pointer;
-    background: #f0f9ff;
-  }
+    input[type="file"] {
+      margin: 10px 0;
+      padding: 10px;
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #f0f9ff;
+    }
 
-  #paste-area {
-    margin-top: 20px;
-    padding: 20px;
-    border: 2px dashed #3b82f6;
-    border-radius: 10px;
-    background: #f9fafb;
-    color: #374151;
-    transition: background 0.2s ease;
-    text-align: center;
-  }
+    #paste-area {
+      margin-top: 20px;
+      padding: 20px;
+      border: 2px dashed #3b82f6;
+      border-radius: 10px;
+      background: #f9fafb;
+      color: #374151;
+      transition: background 0.2s ease;
+      text-align: center;
+    }
 
-  #paste-area:hover {
-    background: #eef2ff;
-  }
+    #paste-area:hover {
+      background: #eef2ff;
+    }
 
-  /* Right side content */
-  .right {
-    margin-left: 33%; /* leave space for fixed sidebar */
-    flex: 1;
-    padding: 20px 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+    /* Right column (results) */
+    .right {
+      margin-left: 33%; /* make space for left sidebar */
+      flex: 1;
+      padding: 20px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
 
-  .result-card {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    text-align: center;
-  }
+    .result-card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      text-align: center;
+    }
 
-  .result-card img {
-    border-radius: 10px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    max-width: 100%;
-    margin-bottom: 10px;
-  }
+    .result-card img {
+      border-radius: 10px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      max-width: 100%;
+      margin-bottom: 10px;
+    }
 
-  .result-card a {
-    display: inline-block;
-    padding: 8px 14px;
-    border-radius: 6px;
-    background: #3b82f6;
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-  }
+    .result-card a {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 6px;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+    }
 
-  .result-card a:hover {
-    background: #2563eb;
-  }
+    .result-card a:hover {
+      background: #2563eb;
+    }
 
-  /* AZ tag */
-  .az-tag {
-    position: fixed;
-    bottom: 12px;
-    right: 16px;
-    font-size: 14px;
-    color: #6b7280;
-    font-weight: 500;
-  }
-</style>
+    .az-tag {
+      position: fixed;
+      bottom: 12px;
+      right: 16px;
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
-  <header>Screenshot Anonymiser</header>
+  <header>
+    Screenshot Anonymiser
+  </header>
 
   <div class="main">
-    <!-- Left: Upload tools -->
+    <!-- LEFT FIXED COLUMN -->
     <div class="left">
       <h2>Screenshot Anonymiser</h2>
       <p>Upload a screenshot to anonymise usernames + profile pics.</p>
-      
       <input type="file" id="upload" multiple accept="image/*"><br>
       <div id="paste-area">📋 Press <b>Ctrl+V</b> here to paste an image</div>
     </div>
 
-    <!-- Right: Results -->
+    <!-- RIGHT SCROLLING COLUMN -->
     <div class="right" id="results"></div>
   </div>
 
@@ -185,22 +183,18 @@
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      // --- Parameters to tweak ---
-      const bandHeight = 60;  // height of anonymisation band
-      const startOffset = 0;  // y-position of the first username row
-
-      // White out only the FIRST username row
+      const bandHeight = 60;
+      const startOffset = 0;
       ctx.fillStyle = "white";
       ctx.fillRect(0, startOffset, img.width, bandHeight);
 
-      // Show result
       const resultDiv = document.getElementById("results");
       const container = document.createElement("div");
       container.className = "result-card";
 
       const outImg = new Image();
       outImg.src = canvas.toDataURL();
-      outImg.alt = "Anonymised Result";
+      outImg.style.maxWidth = "100%";
 
       const downloadLink = document.createElement("a");
       downloadLink.href = canvas.toDataURL("image/png");
@@ -212,7 +206,6 @@
       resultDiv.appendChild(container);
     }
 
-    // Handle file uploads
     document.getElementById("upload").addEventListener("change", function (event) {
       document.getElementById("results").innerHTML = "";
       for (let file of event.target.files) {
@@ -220,7 +213,6 @@
       }
     });
 
-    // Handle paste events
     document.addEventListener("paste", function (event) {
       const items = event.clipboardData.items;
       for (let item of items) {
@@ -230,16 +222,17 @@
         }
       }
     });
-    
-    // Handle drag-and-drop
+
     const pasteArea = document.getElementById("paste-area");
     pasteArea.addEventListener("dragover", function (event) {
       event.preventDefault();
       pasteArea.classList.add("dragover");
     });
+
     pasteArea.addEventListener("dragleave", function () {
       pasteArea.classList.remove("dragover");
     });
+
     pasteArea.addEventListener("drop", function (event) {
       event.preventDefault();
       pasteArea.classList.remove("dragover");
