@@ -8,37 +8,44 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background: #f3f4f6;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-    header {
-      width: 100%;
-      background-color: #ff4500;
-      color: white;
-      padding: 16px;
-      font-size: 20px;
-      font-weight: 600;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    .container {
-      max-width: 700px;
-      width: 100%;
-      margin: 40px;
-      padding: 30px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      text-align: center;
+  font-family: 'Inter', sans-serif;
+  background: #dae0e6; /* Reddit-style gray */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+header {
+  width: 100%;
+  background-color: #ff4500;
+  color: white;
+  padding: 14px 20px;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header::before {
+  content: "⬤";
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+  margin: 40px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  text-align: center;
+}
     }
     h2 {
       margin-top: 0;
