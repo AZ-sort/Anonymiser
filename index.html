@@ -53,36 +53,13 @@
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      // --- Detect how far down the profile picture + username area goes ---
-      const imageData = ctx.getImageData(0, 0, img.width, img.height);
-      const data = imageData.data;
+      // --- Parameters to tweak ---
+      const bandHeight = 70;  // height of anonymisation band
+      const startOffset = 0; // y-position of the first username row
 
-      let cutoffY = 0;
-      for (let y = 0; y < img.height; y++) {
-        // Sample pixels across the first ~200px horizontally
-        let whitePixels = 0;
-        let totalPixels = 0;
-        for (let x = 0; x < Math.min(200, img.width); x++) {
-          const index = (y * img.width + x) * 4;
-          const r = data[index], g = data[index+1], b = data[index+2];
-          const brightness = (r + g + b) / 3;
-          if (brightness > 240) whitePixels++;
-          totalPixels++;
-        }
-
-        // If this row is mostly not-white anymore, we found the cutoff
-        if (whitePixels / totalPixels < 0.85) {
-          cutoffY = y;
-          break;
-        }
-      }
-
-      // If nothing was detected, fallback
-      if (cutoffY === 0) cutoffY = 70;
-
-      // White out the area from the top down to cutoffY
+      // White out only the FIRST username row
       ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, img.width, cutoffY);
+      ctx.fillRect(0, startOffset, img.width, bandHeight);
 
       // Show result
       const resultDiv = document.getElementById("results");
