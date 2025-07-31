@@ -53,34 +53,34 @@
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      // --- Detect how far down the profile picture + username area goes ---
+      // --- Detect cutoff using variance ---
       const imageData = ctx.getImageData(0, 0, img.width, img.height);
       const data = imageData.data;
 
       let cutoffY = 0;
+      const sampleWidth = Math.min(300, img.width);
+
       for (let y = 0; y < img.height; y++) {
-        // Sample pixels across the first ~200px horizontally
-        let whitePixels = 0;
-        let totalPixels = 0;
-        for (let x = 0; x < Math.min(200, img.width); x++) {
+        let rowBrightness = [];
+        for (let x = 0; x < sampleWidth; x++) {
           const index = (y * img.width + x) * 4;
           const r = data[index], g = data[index+1], b = data[index+2];
           const brightness = (r + g + b) / 3;
-          if (brightness > 240) whitePixels++;
-          totalPixels++;
+          rowBrightness.push(brightness);
         }
+        const avg = rowBrightness.reduce((a,b) => a+b, 0) / rowBrightness.length;
+        const variance = rowBrightness.reduce((a,b) => a + Math.pow(b-avg,2), 0) / rowBrightness.length;
 
-        // If this row is mostly not-white anymore, we found the cutoff
-        if (whitePixels / totalPixels < 0.85) {
-          cutoffY = y;
+        // Heuristic: when variance jumps, we've hit usernames/photos
+        if (variance > 1500) { 
+          cutoffY = y + 5; // +5px buffer
           break;
         }
       }
 
-      // If nothing was detected, fallback
-      if (cutoffY === 0) cutoffY = 70;
+      if (cutoffY === 0) cutoffY = 80; // fallback
 
-      // White out the area from the top down to cutoffY
+      // White out everything above cutoff
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, img.width, cutoffY);
 
