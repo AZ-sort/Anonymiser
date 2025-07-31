@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Reddit Screenshot Anonymiser (Multi)</title>
+  <title>Reddit Screenshot Anonymiser</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -37,13 +37,12 @@
   </style>
 </head>
 <body>
-  <h1>Reddit Screenshot Anonymiser (Multi)</h1>
+  <h1>Reddit Screenshot Anonymiser</h1>
   <p>Upload one or more Reddit screenshots and download them anonymised as a ZIP.</p>
   <input type="file" id="upload" accept="image/*" multiple>
   <div class="preview" id="preview"></div>
   <a id="downloadAll" href="#">Download All as ZIP</a>
 
-  <!-- JSZip -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <script>
@@ -68,7 +67,6 @@
         const blob = await anonymizeImage(file);
         const url = URL.createObjectURL(blob);
 
-        // preview
         const container = document.createElement("div");
         container.classList.add("image-container");
         const img = document.createElement("img");
@@ -76,7 +74,6 @@
         container.appendChild(img);
         preview.appendChild(container);
 
-        // add to zip
         zip.file("anonymised_" + file.name, blob);
 
         processed++;
@@ -112,31 +109,35 @@
           let top = null;
 
           for (let y = 0; y < scanHeight; y++) {
-            let rowHasColor = false;
+            let rowHasAvatar = false;
             for (let x = 0; x < scanWidth; x++) {
               const idx = (y * scanWidth + x) * 4;
               const r = data[idx], g = data[idx+1], b = data[idx+2];
               const brightness = (r + g + b) / 3;
-              if (brightness < 240) {
-                rowHasColor = true;
+              // if it's noticeably not white, we assume avatar/profile area
+              if (brightness < 245) {
+                rowHasAvatar = true;
                 break;
               }
             }
 
-            if (rowHasColor) {
+            if (rowHasAvatar) {
               if (top === null) top = y;
             } else {
               if (top !== null) {
-                blocks.push([top, y]);
+                let height = y - top;
+                if (height > 25) { 
+                  blocks.push([top, y]);
+                }
                 top = null;
               }
             }
           }
 
-          // Draw white bars for each detected block
+          // Cover avatar + username area
           ctx.fillStyle = "white";
           blocks.forEach(([yStart, yEnd]) => {
-            ctx.fillRect(0, yStart - 5, img.width, (yEnd - yStart) + 10);
+            ctx.fillRect(0, yStart - 5, img.width * 0.4, (yEnd - yStart) + 10);
           });
 
           canvas.toBlob(blob => resolve(blob), "image/png");
