@@ -53,14 +53,16 @@
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      // --- Adjusted Parameters ---
-      const wipeWidth = Math.floor(img.width * 0.18); // 18% of image width
-      const topOffset = 0;
-      const bottomOffset = img.height;
+      // --- Parameters to tweak ---
+      const bandHeight = 45;  // height of anonymisation band
+      const spacing = 160;    // distance between username rows
+      const startOffset = 20; // first username row offset
 
-      // Wipe left strip (profile pic + usernames column)
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, topOffset, wipeWidth, bottomOffset);
+      // White out each username row across the full width
+      for (let y = startOffset; y < img.height; y += spacing) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, y, img.width, bandHeight);
+      }
 
       // Show result
       const resultDiv = document.getElementById("results");
