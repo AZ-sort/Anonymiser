@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Reddit Screenshot Anonymiser</title>
+  <title>Reddit Screenshot Anonymiser (Multi)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -10,12 +10,8 @@
       background: #f4f4f9;
       text-align: center;
     }
-    h1 {
-      margin-bottom: 20px;
-    }
-    input {
-      margin: 20px;
-    }
+    h1 { margin-bottom: 20px; }
+    input { margin: 20px; }
     .preview {
       display: flex;
       flex-wrap: wrap;
@@ -41,7 +37,7 @@
   </style>
 </head>
 <body>
-  <h1>Reddit Screenshot Anonymiser</h1>
+  <h1>Reddit Screenshot Anonymiser (Multi)</h1>
   <p>Upload one or more Reddit screenshots and download them anonymised as a ZIP.</p>
   <input type="file" id="upload" accept="image/*" multiple>
   <div class="preview" id="preview"></div>
@@ -75,10 +71,8 @@
         // preview
         const container = document.createElement("div");
         container.classList.add("image-container");
-
         const img = document.createElement("img");
         img.src = url;
-
         container.appendChild(img);
         preview.appendChild(container);
 
@@ -114,42 +108,35 @@
           const imageData = ctx.getImageData(0, 0, scanWidth, scanHeight);
           const data = imageData.data;
 
-          const triggerRows = [];
+          let blocks = [];
+          let top = null;
+
           for (let y = 0; y < scanHeight; y++) {
+            let rowHasColor = false;
             for (let x = 0; x < scanWidth; x++) {
               const idx = (y * scanWidth + x) * 4;
               const r = data[idx], g = data[idx+1], b = data[idx+2];
               const brightness = (r + g + b) / 3;
-              const maxRGB = Math.max(r, g, b);
-              const minRGB = Math.min(r, g, b);
-              const saturation = maxRGB - minRGB;
-
-              // Only flag pixels that are not near-white, AND somewhat colorful
-              if (brightness < 230 && saturation > 20) {
-                triggerRows.push(y);
+              if (brightness < 240) {
+                rowHasColor = true;
                 break;
+              }
+            }
+
+            if (rowHasColor) {
+              if (top === null) top = y;
+            } else {
+              if (top !== null) {
+                blocks.push([top, y]);
+                top = null;
               }
             }
           }
 
-          // Group consecutive rows into blocks
-          let blocks = [];
-          let start = null;
-          for (let i = 0; i < triggerRows.length; i++) {
-            if (start === null) {
-              start = triggerRows[i];
-            }
-            if (i === triggerRows.length - 1 || triggerRows[i+1] > triggerRows[i] + 1) {
-              blocks.push([start, triggerRows[i]]);
-              start = null;
-            }
-          }
-
-          // Mask each block as a clean rectangle
+          // Draw white bars for each detected block
           ctx.fillStyle = "white";
           blocks.forEach(([yStart, yEnd]) => {
-            const blockHeight = yEnd - yStart + 10; // padding
-            ctx.fillRect(0, yStart - 5, img.width, blockHeight);
+            ctx.fillRect(0, yStart - 5, img.width, (yEnd - yStart) + 10);
           });
 
           canvas.toBlob(blob => resolve(blob), "image/png");
