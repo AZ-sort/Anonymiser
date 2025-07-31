@@ -2,62 +2,106 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Screenshot Anonymizer</title>
+  <title>Reddit Anonymiser</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 40px;
+    }
+    canvas {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      max-width: 100%;
+    }
+    #paste-area {
+      margin-top: 20px;
+      padding: 15px;
+      border: 2px dashed #aaa;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+  </style>
 </head>
 <body>
-  <h2>Upload Reddit Screenshots to Anonymise</h2>
-  <input type="file" id="upload" multiple accept="image/*">
-  <div id="output"></div>
+  <h2>Reddit Screenshot Anonymiser</h2>
+  <p>Upload or paste a Reddit screenshot and anonymise usernames + profile pics automatically.</p>
+  
+  <input type="file" id="upload" multiple accept="image/*"><br>
+  <div id="paste-area">📋 Press <b>Ctrl+V</b> here to paste an image</div>
+
+  <div id="results"></div>
 
   <script>
-    function anonymizeImage(file) {
-      const img = new Image();
+    function processImageFile(file) {
       const reader = new FileReader();
-      reader.onload = e => {
-        img.src = e.target.result;
-      };
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-
-        const scanHeight = Math.floor(canvas.height * 0.2); // top 20% of the image
-        const width = canvas.width;
-
-        for (let y = 0; y < scanHeight; y++) {
-          for (let x = 0; x < width * 0.2; x++) { // left 20% only
-            const idx = (y * width + x) * 4;
-            const r = data[idx], g = data[idx+1], b = data[idx+2];
-            const brightness = (r+g+b)/3;
-
-            if (brightness < 240) { // detect non-white pixel
-              const boxTop = Math.max(0, y - 10);
-              const boxBottom = Math.min(canvas.height, y + 10);
-              ctx.fillStyle = "white";
-              ctx.fillRect(0, boxTop, canvas.width, boxBottom - boxTop); 
-            }
-          }
-        }
-
-        const outputDiv = document.getElementById("output");
-        const resultImg = new Image();
-        resultImg.src = canvas.toDataURL();
-        resultImg.style.margin = "10px";
-        resultImg.style.border = "1px solid #ccc";
-        outputDiv.appendChild(resultImg);
+      reader.onload = function (event) {
+        const img = new Image();
+        img.onload = function () {
+          anonymiseImage(img, file.name);
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    document.getElementById("upload").addEventListener("change", event => {
-      document.getElementById("output").innerHTML = "";
-      Array.from(event.target.files).forEach(anonymizeImage);
+    function anonymiseImage(img, filename = "pasted.png") {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      // --- Parameters to tweak ---
+      const bandHeight = 45;  // height of anonymisation band
+      const spacing = 160;    // distance between username rows
+      const startOffset = 20; // first username row offset
+
+      // White out each username row across the full width
+      for (let y = startOffset; y < img.height; y += spacing) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, y, img.width, bandHeight);
+      }
+
+      // Show result
+      const resultDiv = document.getElementById("results");
+      const container = document.createElement("div");
+      container.style.marginBottom = "20px";
+
+      const outImg = new Image();
+      outImg.src = canvas.toDataURL();
+      outImg.style.maxWidth = "600px";
+      outImg.style.display = "block";
+      outImg.style.margin = "10px auto";
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = canvas.toDataURL("image/png");
+      downloadLink.download = "anonymised_" + filename;
+      downloadLink.innerText = "⬇ Download " + filename;
+
+      container.appendChild(outImg);
+      container.appendChild(downloadLink);
+      resultDiv.appendChild(container);
+    }
+
+    // Handle file uploads
+    document.getElementById("upload").addEventListener("change", function (event) {
+      document.getElementById("results").innerHTML = "";
+      for (let file of event.target.files) {
+        processImageFile(file);
+      }
+    });
+
+    // Handle paste events
+    document.addEventListener("paste", function (event) {
+      const items = event.clipboardData.items;
+      for (let item of items) {
+        if (item.type.indexOf("image") !== -1) {
+          const file = item.getAsFile();
+          processImageFile(file);
+        }
+      }
     });
   </script>
 </body>
