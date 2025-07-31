@@ -37,8 +37,8 @@
             const brightness = (r+g+b)/3;
 
             if (brightness < 240) { // detect non-white pixel
-              const boxTop = Math.max(0, y - 40);
-              const boxBottom = Math.min(canvas.height, y + 40);
+              const boxTop = Math.max(0, y - 25);
+              const boxBottom = Math.min(canvas.height, y + 25);
               ctx.fillStyle = "white";
               ctx.fillRect(0, boxTop, canvas.width * 0.3, boxBottom - boxTop); 
             }
