@@ -17,6 +17,19 @@
       align-items: flex-start;
       min-height: 100vh;
     }
+    header {
+      width: 100%;
+      background-color: #ff4500;
+      color: white;
+      padding: 16px;
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
     .container {
       max-width: 700px;
       width: 100%;
@@ -73,9 +86,22 @@
     #results a:hover {
       background: #2563eb;
     }
+    /* Permanent AZ_Sort tag */
+    .az-tag {
+      position: fixed;
+      bottom: 12px;
+      right: 16px;
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
+  <header>
+    Reddit Anonymiser
+  </header>
+
   <div class="container">
     <h2>Reddit Screenshot Anonymiser</h2>
     <p>Upload a Reddit screenshot to 'relatively' anonymise usernames + profile pics.</p>
@@ -84,6 +110,9 @@
     <div id="paste-area">📋 Press <b>Ctrl+V</b> here to paste an image</div>
 
     <div id="results"></div>
+  </div>
+
+  <div class="az-tag">By AZ_Sort</div>
 
   <script>
     function processImageFile(file) {
