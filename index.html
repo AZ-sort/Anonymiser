@@ -53,32 +53,14 @@
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      const imageData = ctx.getImageData(0, 0, img.width, img.height);
-      const data = imageData.data;
+      // --- Adjusted Parameters ---
+      const wipeWidth = Math.floor(img.width * 0.18); // 18% of image width
+      const topOffset = 0;
+      const bottomOffset = img.height;
 
-      const bands = [];
-      const bandHeight = 50;
-      const scanWidth = Math.floor(img.width * 0.25); // scan left 25% only
-
-      for (let y = 0; y < img.height; y++) {
-        let darkPixels = 0;
-        for (let x = 0; x < scanWidth; x++) {
-          const i = (y * img.width + x) * 4;
-          const r = data[i], g = data[i + 1], b = data[i + 2];
-          if (r + g + b < 720) darkPixels++;
-        }
-        if (darkPixels > scanWidth * 0.1) { // found likely username row
-          if (bands.length === 0 || y - bands[bands.length - 1] > bandHeight) {
-            bands.push(y);
-          }
-        }
-      }
-
-      // Paint anonymisation bands
+      // Wipe left strip (profile pic + usernames column)
       ctx.fillStyle = "white";
-      bands.forEach(y => {
-        ctx.fillRect(0, y - 10, img.width, bandHeight);
-      });
+      ctx.fillRect(0, topOffset, wipeWidth, bottomOffset);
 
       // Show result
       const resultDiv = document.getElementById("results");
