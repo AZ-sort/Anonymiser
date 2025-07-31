@@ -2,60 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Reddit Anonymiser</title>
+  <title>Reddit Screenshot Anonymiser</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f4f4f9;
       text-align: center;
-      padding: 40px;
-      background: #fafafa;
     }
-    #preview img {
-      max-width: 200px;
-      margin: 8px;
+    h1 {
+      margin-bottom: 20px;
+    }
+    input {
+      margin: 20px;
+    }
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .image-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      max-width: 400px;
       border: 1px solid #ccc;
+      background: white;
     }
-    .button {
-      margin: 10px;
-      padding: 10px 20px;
-      background: #333;
+    a.download {
+      margin-top: 10px;
+      display: inline-block;
+      text-decoration: none;
       color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-    .button:hover {
-      background: #555;
+      background: #007bff;
+      padding: 6px 12px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
   <h1>Reddit Screenshot Anonymiser</h1>
-  <input type="file" id="fileInput" accept="image/*" multiple>
-  <button class="button" onclick="processImages()">Anonymise & Download</button>
-  <div id="preview"></div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <p>Upload one or more screenshots and automatically anonymise usernames.</p>
+  <input type="file" id="upload" accept="image/*" multiple>
+  <div class="preview" id="preview"></div>
 
   <script>
-    let selectedFiles = [];
+    document.getElementById("upload").addEventListener("change", handleFiles);
 
-    document.getElementById("fileInput").addEventListener("change", (e) => {
-      selectedFiles = Array.from(e.target.files);
+    async function handleFiles(event) {
+      const files = event.target.files;
       const preview = document.getElementById("preview");
-      preview.innerHTML = "";
-      selectedFiles.forEach(file => {
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(file);
-        preview.appendChild(img);
-      });
-    });
+      preview.innerHTML = ""; // clear previous
 
-    function isNonBackgroundColor(r, g, b) {
-      // Bright pixels are likely Reddit background (white/grey).
-      const brightness = (r + g + b) / 3;
-      return brightness < 230;
+      for (let file of files) {
+        const blob = await anonymizeImage(file);
+        const url = URL.createObjectURL(blob);
+
+        // Show canvas preview
+        const container = document.createElement("div");
+        container.classList.add("image-container");
+
+        const img = document.createElement("img");
+        img.src = url;
+        img.style.maxWidth = "400px";
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "anonymised_" + file.name;
+        link.textContent = "Download";
+        link.classList.add("download");
+
+        container.appendChild(img);
+        container.appendChild(link);
+        preview.appendChild(container);
+      }
     }
 
     async function anonymizeImage(file) {
@@ -68,59 +92,36 @@
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
 
-          // Scan only top-left part of the image
-          const scanWidth = Math.floor(img.width * 0.25);
-          const scanHeight = Math.floor(img.height * 0.15);
+          // Scan the LEFT 20% of the image, across the FULL height
+          const scanWidth = Math.floor(img.width * 0.2);
+          const scanHeight = img.height;
           const imageData = ctx.getImageData(0, 0, scanWidth, scanHeight);
           const data = imageData.data;
 
-          let minX = scanWidth, minY = scanHeight, maxX = 0, maxY = 0;
+          const maskedRows = new Set();
 
+          // Detect rows with any non-background pixel
           for (let y = 0; y < scanHeight; y++) {
             for (let x = 0; x < scanWidth; x++) {
               const idx = (y * scanWidth + x) * 4;
               const r = data[idx], g = data[idx+1], b = data[idx+2];
-              if (isNonBackgroundColor(r, g, b)) {
-                if (x < minX) minX = x;
-                if (y < minY) minY = y;
-                if (x > maxX) maxX = x;
-                if (y > maxY) maxY = y;
+              const brightness = (r + g + b) / 3;
+              if (brightness < 230) { 
+                maskedRows.add(y);
+                break;
               }
             }
           }
 
-          if (maxX > minX && maxY > minY) {
-            ctx.fillStyle = "white";
-            // Mask profile picture
-            ctx.fillRect(minX - 5, minY - 5, (maxX - minX) + 10, (maxY - minY) + 10);
-
-            // Mask username area to the right of avatar
-            const usernameWidth = Math.floor(img.width * 0.45);
-            const usernameHeight = (maxY - minY) + 20;
-            ctx.fillRect(maxX + 15, minY - 5, usernameWidth, usernameHeight);
-          }
+          // Mask entire rows where profile pics/usernames were found
+          ctx.fillStyle = "white";
+          maskedRows.forEach(y => {
+            ctx.fillRect(0, y - 3, img.width, 6); 
+          });
 
           canvas.toBlob(blob => resolve(blob), "image/png");
         };
         img.src = URL.createObjectURL(file);
-      });
-    }
-
-    async function processImages() {
-      if (selectedFiles.length === 0) {
-        alert("Please select at least one image.");
-        return;
-      }
-
-      const zip = new JSZip();
-
-      for (const file of selectedFiles) {
-        const blob = await anonymizeImage(file);
-        zip.file("anonymised_" + file.name, blob);
-      }
-
-      zip.generateAsync({ type: "blob" }).then(content => {
-        saveAs(content, "anonymised_images.zip");
       });
     }
   </script>
