@@ -2,101 +2,127 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Reddit Screenshot Anonymiser</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <title>Reddit Anonymiser</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-    #output { margin-top: 20px; }
-    canvas { max-width: 90%; margin: 10px 0; border: 1px solid #ccc; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background: #fafafa;
+    }
+    #preview img {
+      max-width: 200px;
+      margin: 8px;
+      border: 1px solid #ccc;
+    }
+    .button {
+      margin: 10px;
+      padding: 10px 20px;
+      background: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .button:hover {
+      background: #555;
+    }
   </style>
 </head>
 <body>
-  <h2>Reddit Screenshot Anonymiser</h2>
-  <p>Upload Reddit screenshots and download them anonymised (profile picture + first username only).</p>
-  <input type="file" id="fileInput" multiple accept="image/*"><br><br>
-  <button id="processBtn">Anonymise & Download</button>
-  <div id="output"></div>
+  <h1>Reddit Screenshot Anonymiser</h1>
+  <input type="file" id="fileInput" accept="image/*" multiple>
+  <button class="button" onclick="processImages()">Anonymise & Download</button>
+  <div id="preview"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
   <script>
-    const fileInput = document.getElementById("fileInput");
-    const processBtn = document.getElementById("processBtn");
-    const outputDiv = document.getElementById("output");
+    let selectedFiles = [];
 
-    // Draw a solid white rectangle over a region
-    function maskRegion(ctx, x, y, w, h, padding = 6) {
-      ctx.fillStyle = "white";
-      ctx.fillRect(
-        Math.max(0, x - padding), 
-        Math.max(0, y - padding), 
-        w + padding * 2, 
-        h + padding * 2
-      );
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+      selectedFiles = Array.from(e.target.files);
+      const preview = document.getElementById("preview");
+      preview.innerHTML = "";
+      selectedFiles.forEach(file => {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        preview.appendChild(img);
+      });
+    });
+
+    function isNonBackgroundColor(r, g, b) {
+      // Bright pixels are likely Reddit background (white/grey).
+      const brightness = (r + g + b) / 3;
+      return brightness < 230;
     }
 
     async function anonymizeImage(file) {
       return new Promise((resolve) => {
         const img = new Image();
-        img.onload = async () => {
+        img.onload = () => {
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
           canvas.width = img.width;
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
 
-          // Mask profile picture (fixed square area top-left)
-          const pSize = Math.floor(img.height * 0.06); 
-          maskRegion(ctx, 10, 10, pSize, pSize, 4);
+          // Scan only top-left part of the image
+          const scanWidth = Math.floor(img.width * 0.25);
+          const scanHeight = Math.floor(img.height * 0.15);
+          const imageData = ctx.getImageData(0, 0, scanWidth, scanHeight);
+          const data = imageData.data;
 
-          // Detect username in top 15% of image
-          const cropHeight = Math.floor(img.height * 0.15);
-          const tempCanvas = document.createElement("canvas");
-          tempCanvas.width = img.width;
-          tempCanvas.height = cropHeight;
-          tempCanvas.getContext("2d").drawImage(img, 0, 0);
+          let minX = scanWidth, minY = scanHeight, maxX = 0, maxY = 0;
 
-          const { data: { words } } = await Tesseract.recognize(tempCanvas, 'eng');
-
-          if (words.length > 0) {
-            // Assume longest word is the username
-            let usernameWord = words.reduce((a, b) => a.text.length > b.text.length ? a : b);
-            const { x0, y0, x1, y1 } = usernameWord.bbox;
-
-            // Apply a bit of padding, but cap height so it won't overlap into main text
-            const safeHeight = Math.min(y1 - y0 + 12, cropHeight - y0 - 2);
-            maskRegion(ctx, x0, y0, x1 - x0, safeHeight, 10);
+          for (let y = 0; y < scanHeight; y++) {
+            for (let x = 0; x < scanWidth; x++) {
+              const idx = (y * scanWidth + x) * 4;
+              const r = data[idx], g = data[idx+1], b = data[idx+2];
+              if (isNonBackgroundColor(r, g, b)) {
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+              }
+            }
           }
 
-          resolve(canvas);
+          if (maxX > minX && maxY > minY) {
+            ctx.fillStyle = "white";
+            // Mask profile picture
+            ctx.fillRect(minX - 5, minY - 5, (maxX - minX) + 10, (maxY - minY) + 10);
+
+            // Mask username area to the right of avatar
+            const usernameWidth = Math.floor(img.width * 0.45);
+            const usernameHeight = (maxY - minY) + 20;
+            ctx.fillRect(maxX + 15, minY - 5, usernameWidth, usernameHeight);
+          }
+
+          canvas.toBlob(blob => resolve(blob), "image/png");
         };
         img.src = URL.createObjectURL(file);
       });
     }
 
-    processBtn.addEventListener("click", async () => {
-      if (!fileInput.files.length) {
-        alert("Please upload some images first.");
+    async function processImages() {
+      if (selectedFiles.length === 0) {
+        alert("Please select at least one image.");
         return;
       }
 
-      outputDiv.innerHTML = "Processing images, please wait...";
       const zip = new JSZip();
 
-      for (const file of fileInput.files) {
-        const canvas = await anonymizeImage(file);
-        const dataUrl = canvas.toDataURL("image/jpeg");
-        const base64 = dataUrl.split(",")[1];
-        zip.file("anon_" + file.name, base64, { base64: true });
-
-        // Preview in page
-        outputDiv.appendChild(canvas);
+      for (const file of selectedFiles) {
+        const blob = await anonymizeImage(file);
+        zip.file("anonymised_" + file.name, blob);
       }
 
-      const blob = await zip.generateAsync({ type: "blob" });
-      saveAs(blob, "anonymized_images.zip");
-      outputDiv.insertAdjacentHTML("afterbegin", "<p>✅ Done! ZIP downloaded.</p>");
-    });
+      zip.generateAsync({ type: "blob" }).then(content => {
+        saveAs(content, "anonymised_images.zip");
+      });
+    }
   </script>
 </body>
 </html>
