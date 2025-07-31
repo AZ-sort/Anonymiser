@@ -8,54 +8,63 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-  font-family: 'Inter', sans-serif;
-  background: #dae0e6; /* Reddit-style gray */
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-}
-
-header {
-  width: 100%;
-  background-color: #273869;
-  color: white;
-  padding: 14px 20px;
-  font-size: 20px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-header::before {
-  content: "⬤";
-  font-size: 14px;
-  margin-right: 10px;
-}
-
-.container {
-  max-width: 600px;
-  width: 100%;
-  margin: 40px auto;
-  padding: 30px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  text-align: center;
-}
+      font-family: 'Inter', sans-serif;
+      background: #dae0e6; /* Reddit-style gray */
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
     }
-    h2 {
+
+    header {
+      width: 100%;
+      background-color: #273869;
+      color: white;
+      padding: 14px 20px;
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header::before {
+      content: "⬤";
+      font-size: 14px;
+      margin-right: 10px;
+    }
+
+    /* Main flex wrapper */
+    .main {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+      gap: 30px;
+    }
+
+    /* Left column (upload tools) */
+    .left {
+      flex: 1;
+      max-width: 400px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .left h2 {
       margin-top: 0;
       font-weight: 600;
       color: #111827;
     }
-    p {
+
+    .left p {
       color: #4b5563;
       margin-bottom: 20px;
     }
+
     input[type="file"] {
       margin: 10px 0;
       padding: 10px;
@@ -64,6 +73,7 @@ header::before {
       cursor: pointer;
       background: #f0f9ff;
     }
+
     #paste-area {
       margin-top: 20px;
       padding: 20px;
@@ -72,17 +82,38 @@ header::before {
       background: #f9fafb;
       color: #374151;
       transition: background 0.2s ease;
+      text-align: center;
     }
+
     #paste-area:hover {
       background: #eef2ff;
     }
-    #results img {
+
+    /* Right column (results) */
+    .right {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .result-card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .result-card img {
       border-radius: 10px;
       box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      max-width: 100%;
+      margin-bottom: 10px;
     }
-    #results a {
+
+    .result-card a {
       display: inline-block;
-      margin-top: 10px;
       padding: 8px 14px;
       border-radius: 6px;
       background: #3b82f6;
@@ -90,9 +121,11 @@ header::before {
       text-decoration: none;
       font-weight: 500;
     }
-    #results a:hover {
+
+    .result-card a:hover {
       background: #2563eb;
     }
+
     /* Permanent AZ_Sort tag */
     .az-tag {
       position: fixed;
@@ -105,18 +138,20 @@ header::before {
   </style>
 </head>
 <body>
-  <header>
-    Screenshot Anonymiser
-  </header>
+  <header>Screenshot Anonymiser</header>
 
-  <div class="container">
-    <h2>Screenshot Anonymiser</h2>
-    <p>Upload a screenshot to anonymise usernames + profile pics.</p>
-    
-    <input type="file" id="upload" multiple accept="image/*"><br>
-    <div id="paste-area">📋 Press <b>Ctrl+V</b> here to paste an image</div>
+  <div class="main">
+    <!-- Left: Upload tools -->
+    <div class="left">
+      <h2>Screenshot Anonymiser</h2>
+      <p>Upload a screenshot to anonymise usernames + profile pics.</p>
+      
+      <input type="file" id="upload" multiple accept="image/*"><br>
+      <div id="paste-area">📋 Press <b>Ctrl+V</b> here to paste an image</div>
+    </div>
 
-    <div id="results"></div>
+    <!-- Right: Results -->
+    <div class="right" id="results"></div>
   </div>
 
   <div class="az-tag">By AZ_Sort</div>
@@ -144,7 +179,7 @@ header::before {
 
       // --- Parameters to tweak ---
       const bandHeight = 60;  // height of anonymisation band
-      const startOffset = 0; // y-position of the first username row
+      const startOffset = 0;  // y-position of the first username row
 
       // White out only the FIRST username row
       ctx.fillStyle = "white";
@@ -153,18 +188,16 @@ header::before {
       // Show result
       const resultDiv = document.getElementById("results");
       const container = document.createElement("div");
-      container.style.marginBottom = "20px";
+      container.className = "result-card";
 
       const outImg = new Image();
       outImg.src = canvas.toDataURL();
-      outImg.style.maxWidth = "600px";
-      outImg.style.display = "block";
-      outImg.style.margin = "10px auto";
+      outImg.alt = "Anonymised Result";
 
       const downloadLink = document.createElement("a");
       downloadLink.href = canvas.toDataURL("image/png");
       downloadLink.download = "anonymised_" + filename;
-      downloadLink.innerText = " Download " + filename;
+      downloadLink.innerText = "Download " + filename;
 
       container.appendChild(outImg);
       container.appendChild(downloadLink);
@@ -192,20 +225,16 @@ header::before {
     
     // Handle drag-and-drop
     const pasteArea = document.getElementById("paste-area");
-
     pasteArea.addEventListener("dragover", function (event) {
       event.preventDefault();
       pasteArea.classList.add("dragover");
     });
-
     pasteArea.addEventListener("dragleave", function () {
       pasteArea.classList.remove("dragover");
     });
-
     pasteArea.addEventListener("drop", function (event) {
       event.preventDefault();
       pasteArea.classList.remove("dragover");
-
       const files = event.dataTransfer.files;
       for (let file of files) {
         if (file.type.indexOf("image") !== -1) {
