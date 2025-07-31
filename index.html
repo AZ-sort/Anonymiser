@@ -78,7 +78,7 @@
 <body>
   <div class="container">
     <h2>Reddit Screenshot Anonymiser</h2>
-    <p>Upload or paste a Reddit screenshot and anonymise usernames + profile pics automatically.</p>
+    <p>Upload a Reddit screenshot to 'relatively' anonymise usernames + profile pics.</p>
     
     <input type="file" id="upload" multiple accept="image/*"><br>
     <div id="paste-area">📋 Press <b>Ctrl+V</b> here to paste an image</div>
@@ -128,7 +128,7 @@
       const downloadLink = document.createElement("a");
       downloadLink.href = canvas.toDataURL("image/png");
       downloadLink.download = "anonymised_" + filename;
-      downloadLink.innerText = "⬇ Download " + filename;
+      downloadLink.innerText = " Download " + filename;
 
       container.appendChild(outImg);
       container.appendChild(downloadLink);
