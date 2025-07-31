@@ -7,135 +7,143 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #dae0e6; /* Reddit-style gray */
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #dae0e6;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-    header {
-      width: 100%;
-      background-color: #273869;
-      color: white;
-      padding: 14px 20px;
-      font-size: 20px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+  header {
+    width: 100%;
+    background-color: #273869;
+    color: white;
+    padding: 14px 20px;
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
 
-    header::before {
-      content: "⬤";
-      font-size: 14px;
-      margin-right: 10px;
-    }
+  header::before {
+    content: "⬤";
+    font-size: 14px;
+    margin-right: 10px;
+  }
 
-    /* Main flex wrapper */
-    .main {
-      display: flex;
-      justify-content: flex-start;
-      align-items: flex-start;
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 0 20px;
-      gap: 30px;
-    }
+  /* Layout: left fixed panel, right scrollable content */
+  .main {
+    display: flex;
+    margin-top: 60px; /* push below header */
+  }
 
-    /* Left column (upload tools) */
-    .left {
-      flex: 1;
-      max-width: 400px;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
+  /* Left fixed column */
+  .left {
+    width: 33%;
+    max-width: 400px;
+    height: calc(100vh - 60px); /* full height under header */
+    background: white;
+    padding: 20px;
+    border-right: 1px solid #d1d5db;
+    position: fixed;
+    top: 60px; /* just under header */
+    left: 0;
+    overflow-y: auto;
+    box-shadow: 2px 0 6px rgba(0,0,0,0.08);
+  }
 
-    .left h2 {
-      margin-top: 0;
-      font-weight: 600;
-      color: #111827;
-    }
+  .left h2 {
+    margin-top: 0;
+    font-weight: 600;
+    color: #111827;
+  }
 
-    .left p {
-      color: #4b5563;
-      margin-bottom: 20px;
-    }
+  .left p {
+    color: #4b5563;
+    margin-bottom: 20px;
+  }
 
-    input[type="file"] {
-      margin: 10px 0;
-      padding: 10px;
-      border: 2px solid #3b82f6;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #f0f9ff;
-    }
+  input[type="file"] {
+    margin: 10px 0;
+    padding: 10px;
+    border: 2px solid #3b82f6;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #f0f9ff;
+  }
 
-    #paste-area {
-      margin-top: 20px;
-      padding: 20px;
-      border: 2px dashed #3b82f6;
-      border-radius: 10px;
-      background: #f9fafb;
-      color: #374151;
-      transition: background 0.2s ease;
-      text-align: center;
-    }
+  #paste-area {
+    margin-top: 20px;
+    padding: 20px;
+    border: 2px dashed #3b82f6;
+    border-radius: 10px;
+    background: #f9fafb;
+    color: #374151;
+    transition: background 0.2s ease;
+    text-align: center;
+  }
 
-    #paste-area:hover {
-      background: #eef2ff;
-    }
+  #paste-area:hover {
+    background: #eef2ff;
+  }
 
-    /* Right column (results) */
-    .right {
-      flex: 2;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
+  /* Right side content */
+  .right {
+    margin-left: 33%; /* leave space for fixed sidebar */
+    flex: 1;
+    padding: 20px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
 
-    .result-card {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      text-align: center;
-    }
+  .result-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    text-align: center;
+  }
 
-    .result-card img {
-      border-radius: 10px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      max-width: 100%;
-      margin-bottom: 10px;
-    }
+  .result-card img {
+    border-radius: 10px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
 
-    .result-card a {
-      display: inline-block;
-      padding: 8px 14px;
-      border-radius: 6px;
-      background: #3b82f6;
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-    }
+  .result-card a {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: #3b82f6;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+  }
 
-    .result-card a:hover {
-      background: #2563eb;
-    }
+  .result-card a:hover {
+    background: #2563eb;
+  }
 
-    /* Permanent AZ_Sort tag */
-    .az-tag {
-      position: fixed;
-      bottom: 12px;
-      right: 16px;
-      font-size: 14px;
-      color: #6b7280;
-      font-weight: 500;
-    }
-  </style>
+  /* AZ tag */
+  .az-tag {
+    position: fixed;
+    bottom: 12px;
+    right: 16px;
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+  }
+</style>
 </head>
 <body>
   <header>Screenshot Anonymiser</header>
